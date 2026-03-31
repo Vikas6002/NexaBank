@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Profile</h2>
+
+<p>Email: {{ user.email }}</p>
+<p>Role: {{ user.role }}</p>
+<p>Verified: {{ user.is_verified }}</p>
+
+<a href="{% url 'accounts:logout' %}">Logout</a>
+
+{% endblock %}
