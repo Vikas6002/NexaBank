@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Dashboard - NexaBank{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="margin-bottom: 0.5rem;">Welcome, {{ request.user.email }}!</h1>
+    <p style="color: var(--text-muted);">Here is a summary of your automated financial activities.</p>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; margin-top: 0;">
+    <!-- Left Column: Accounts -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Your Accounts</h3>
+            <a href="{% url 'banking:create-account' %}" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.5rem 1rem;">+ Open Account</a>
+        </div>
+        
+        {% if accounts %}
+            <div style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
+            {% for account in accounts %}
+                <div class="card" style="padding: 1.5rem; background: linear-gradient(145deg, var(--surface), #26354a);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <h4 style="color: var(--secondary);">{{ account.get_account_type_display }}</h4>
+                        <a href="{% url 'statements:download' account.id %}" style="color: var(--text-muted);" title="Download Statement">📄</a>
+                    </div>
+                    <p style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">${{ account.balance }}</p>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; font-family: monospace;">*{{ account.account_number|slice:"-4:" }}</p>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                        <a href="{% url 'transactions:transfer' %}" class="btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: rgba(79, 70, 229, 0.2); color: #fff;">Transfer</a>
+                        <a href="{% url 'banking:account-detail' account.id %}" class="btn btn-secondary" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Details</a>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; padding: 3rem 1rem; border: 1px dashed var(--border);">
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">You don't have any accounts yet.</p>
+                <a href="{% url 'banking:create-account' %}" class="btn btn-primary">Open an Account</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Quick Actions & Recent Activity -->
+    <div>
+        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <a href="{% url 'transactions:deposit' %}" class="btn btn-primary" style="justify-content: flex-start;">⬇️ Deposit Funds</a>
+            <a href="{% url 'transactions:withdraw' %}" class="btn btn-secondary" style="justify-content: flex-start;">⬆️ Withdraw Funds</a>
+            <a href="{% url 'transactions:transfer' %}" class="btn btn-secondary" style="justify-content: flex-start;">🔄 Transfer Money</a>
+            <a href="{% url 'transactions:history' %}" class="btn" style="justify-content: flex-start; background: var(--background); color: var(--text-muted); border: 1px solid var(--border);">📊 View Full History</a>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">Recent Activity</h3>
+        <div class="card" style="padding: 1rem;">
+            {% if recent_transactions %}
+                {% for tx in recent_transactions %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                        <div>
+                            <p style="font-weight: 500; font-size: 0.9rem;">{{ tx.get_type_display }}</p>
+                            <p style="color: var(--text-muted); font-size: 0.75rem;">{{ tx.timestamp|date:"M j, g:i a" }}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-weight: 700; color: {% if tx.type == 'DEPOSIT' %}var(--success){% elif tx.type == 'WITHDRAW' %}var(--danger){% else %}white{% endif %}">
+                                {% if tx.type == 'DEPOSIT' %}+{% elif tx.type == 'WITHDRAW' %}-{% endif %}${{ tx.amount }}
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem 0;">No recent transactions.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Bank Account - NexaBank{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 3rem auto;">
+    <h2>Open a New Account</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Select the type of account you'd like to open with us.</p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Account Type</label>
+            <select name="account_type" class="form-control" required style="padding: 1rem; appearance: none; cursor: pointer;">
+                <option value="" disabled selected>Select an option</option>
+                <option value="SAVINGS">Savings Account - 2.5% APY</option>
+                <option value="CURRENT">Current Account - Standard Checking</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
+    </form>
+</div>
+{% endblock %}

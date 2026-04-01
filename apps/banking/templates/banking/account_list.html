@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}My Accounts - NexaBank{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>My Accounts</h2>
+    <a href="{% url 'banking:create-account' %}" class="btn btn-primary">+ Open Account</a>
+</div>
+
+{% if accounts %}
+<div class="dashboard-grid">
+    {% for account in accounts %}
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="margin-bottom: 0.25rem;">{{ account.get_account_type_display }} Account</h3>
+                    <p style="color: var(--text-muted); font-family: monospace; letter-spacing: 1px;">XXXX-{{ account.account_number|slice:"-4:" }}</p>
+                </div>
+                <span class="badge badge-success">Active</span>
+            </div>
+            
+            <p style="color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase;">Available Balance</p>
+            <p style="font-size: 2.5rem; font-weight: 800; color: var(--secondary); margin-bottom: 1.5rem;">${{ account.balance }}</p>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'banking:account-detail' account.id %}" class="btn btn-secondary" style="flex: 1;">Details</a>
+                <a href="{% url 'statements:download' account.id %}" class="btn btn-secondary" style="flex: 1;">Statement</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h3 style="margin-bottom: 1rem;">No Accounts Yet</h3>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Open your first NexaBank account to get started.</p>
+    <a href="{% url 'banking:create-account' %}" class="btn btn-primary">Open Account</a>
+</div>
+{% endif %}
+{% endblock %}

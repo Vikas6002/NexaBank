@@ -44,8 +44,5 @@ class LoginForm(forms.Form):
         if not user:
             raise forms.ValidationError("Invalid credentials")
 
-        if not user.is_verified:
-            raise forms.ValidationError("Account not verified via OTP")
-
         self.user = user
-        return cleaned_data
+        return self.cleaned_data

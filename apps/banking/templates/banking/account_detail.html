@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Details - NexaBank{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <a href="{% url 'banking:account-list' %}" style="color: var(--text-muted); display: inline-block; margin-bottom: 0.5rem;">← Back to Accounts</a>
+        <h2>{{ account.get_account_type_display }} Overview</h2>
+    </div>
+    <a href="{% url 'statements:download' account.id %}" class="btn btn-primary">Download PDF Statement</a>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 0;">
+    <div class="card">
+        <h3 style="margin-bottom: 1.5rem;">Account Information</h3>
+        <table style="width: 100%;">
+            <tr>
+                <td style="color: var(--text-muted); padding: 0.75rem 0; border: none;">Account Number</td>
+                <td style="text-align: right; font-weight: 500; padding: 0.75rem 0; border: none; font-family: monospace;">{{ account.account_number }}</td>
+            </tr>
+            <tr>
+                <td style="color: var(--text-muted); padding: 0.75rem 0; border-top: 1px solid var(--border); border-bottom: none;">Routing Number</td>
+                <td style="text-align: right; font-weight: 500; padding: 0.75rem 0; border-top: 1px solid var(--border); border-bottom: none; font-family: monospace;">021000021</td>
+            </tr>
+            <tr>
+                <td style="color: var(--text-muted); padding: 0.75rem 0; border-top: 1px solid var(--border); border-bottom: none;">Date Opened</td>
+                <td style="text-align: right; font-weight: 500; padding: 0.75rem 0; border-top: 1px solid var(--border); border-bottom: none;">{{ account.created_at|date:"M j, Y" }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none;">
+        <p style="color: rgba(255,255,255,0.8); text-transform: uppercase; font-size: 0.875rem; letter-spacing: 1px;">Current Balance</p>
+        <h2 style="font-size: 3.5rem; margin: 1rem 0;">${{ account.balance }}</h2>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <a href="{% url 'transactions:deposit' %}" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); flex: 1;">Deposit</a>
+            <a href="{% url 'transactions:transfer' %}" class="btn" style="background: white; color: var(--primary-dark); flex: 1;">Transfer</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

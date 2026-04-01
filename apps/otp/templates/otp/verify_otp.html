@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - NexaBank{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 4rem auto;">
+    <div class="card">
+        <h2 style="margin-bottom: 0.5rem; text-align: center;">Verify Your Account</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Please enter the 6-digit OTP sent to your email.</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="otp" class="form-control" placeholder="000000" maxlength="6" required style="font-size: 1.5rem; letter-spacing: 0.5rem; text-align: center;" autofocus />
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Verify OTP 🔐</button>
+        </form>
+        
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+            <form action="{% url 'otp:resend-otp' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; color: var(--primary); cursor: pointer; text-decoration: underline;">Resend OTP</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

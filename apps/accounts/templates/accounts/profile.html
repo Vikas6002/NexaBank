@@ -1,12 +1,37 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}My Profile - NexaBank{% endblock %}
 
 {% block content %}
-<h2>Profile</h2>
-
-<p>Email: {{ user.email }}</p>
-<p>Role: {{ user.role }}</p>
-<p>Verified: {{ user.is_verified }}</p>
-
-<a href="{% url 'accounts:logout' %}">Logout</a>
-
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <h2>My Profile</h2>
+        <hr style="border-color: var(--border); margin: 1rem 0;">
+        
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Email Address</p>
+            <p style="font-size: 1.1rem; font-weight: 500;">{{ user.email }}</p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Role</p>
+            <p><span class="badge badge-success">{{ user.role }}</span></p>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Verification Status</p>
+            {% if user.is_verified %}
+                <p><span class="badge badge-success">Verified</span></p>
+            {% else %}
+                <p><span class="badge badge-failed">Pending Verification</span></p>
+                <a href="{% url 'otp:send-otp' %}" class="btn btn-secondary" style="margin-top: 10px; font-size: 0.85rem;">Verify Now</a>
+            {% endif %}
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Member Since</p>
+            <p>{{ user.created_at|date:"F j, Y" }}</p>
+        </div>
+    </div>
+</div>
 {% endblock %}

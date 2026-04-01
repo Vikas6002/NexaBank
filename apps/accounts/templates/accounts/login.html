@@ -1,12 +1,44 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Login - NexaBank{% endblock %}
 
 {% block content %}
-<h2>Login</h2>
+<div style="max-width: 450px; margin: 4rem auto;">
+    <div class="card">
+        <h2 style="margin-bottom: 0.5rem; text-align: center;">Welcome Back</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Securely login to your NexaBank account</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label" for="id_email">Email Address</label>
+                {{ form.email }}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="id_password">Password</label>
+                {{ form.password }}
+            </div>
+            <a href="{% url 'accounts:forgot-password' %}" style="display: block; text-align: right; margin-top: -10px; margin-bottom: 20px; font-size: 0.85rem; color: var(--primary);">Forgot Password?</a>
+            {% if form.errors %}
+                <div class="message error">
+                    Invalid credentials. Please try again.
+                </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login 🚀</button>
+        </form>
+        
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+            <p style="color: var(--text-muted)">Don't have an account? <a href="{% url 'accounts:register' %}">Create one</a></p>
+        </div>
+    </div>
+</div>
 
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
-
+<script>
+    // Add form classes
+    document.querySelectorAll('input').forEach(input => {
+        if(input.type !== 'hidden' && input.type !== 'submit'){
+            input.classList.add('form-control');
+        }
+    });
+</script>
 {% endblock %}

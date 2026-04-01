@@ -1,0 +1,23 @@
+<nav class="navbar">
+    <a href="/" class="nav-brand">NexaBank 🏦</a>
+    <div class="nav-links">
+        {% if user.is_authenticated %}
+            {% if user.role == 'ADMIN' %}
+                <a href="{% url 'dashboard:admin' %}">Admin Dashboard</a>
+            {% elif user.role == 'TELLER' %}
+                <a href="{% url 'dashboard:teller' %}">Teller Dashboard</a>
+            {% else %}
+                <a href="{% url 'dashboard:customer' %}">My Dashboard</a>
+            {% endif %}
+            
+            <a href="{% url 'accounts:profile' %}">Profile</a>
+            <form action="{% url 'accounts:logout' %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Login</a>
+            <a href="{% url 'accounts:register' %}" class="btn btn-primary">Create Account</a>
+        {% endif %}
+    </div>
+</nav>

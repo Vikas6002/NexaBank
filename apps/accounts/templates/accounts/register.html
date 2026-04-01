@@ -1,12 +1,40 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Create Account - NexaBank{% endblock %}
 
 {% block content %}
-<h2>Register</h2>
+<div style="max-width: 500px; margin: 4rem auto;">
+    <div class="card">
+        <h2 style="margin-bottom: 0.5rem; text-align: center;">Join NexaBank</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;">Register for a new online banking account</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div style="color: var(--danger); font-size: 0.8rem; margin-top: 5px;">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account ✨</button>
+        </form>
+        
+        <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+            <p style="color: var(--text-muted)">Already a member? <a href="{% url 'accounts:login' %}">Login here</a></p>
+        </div>
+    </div>
+</div>
 
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
-
+<script>
+    // Add form classes
+    document.querySelectorAll('input').forEach(input => {
+        if(input.type !== 'hidden' && input.type !== 'submit'){
+            input.classList.add('form-control');
+        }
+    });
+</script>
 {% endblock %}
