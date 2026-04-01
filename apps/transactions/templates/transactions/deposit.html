@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Make a Deposit - NexaBank{% endblock %}
 
@@ -14,13 +14,13 @@
             <select name="account_id" class="form-control" required style="padding: 1rem; appearance: none; cursor: pointer;">
                 <option value="" disabled selected>Select destination account</option>
                 {% for acc in accounts %}
-                    <option value="{{ acc.id }}">{{ acc.get_account_type_display }} (....{{ acc.account_number|slice:"-4:" }}) - Bal: ${{ acc.balance }}</option>
+                    <option value="{{ acc.id }}">{{ acc.get_account_type_display }} (....{{ acc.account_number|slice:"-4:" }}) - Bal: ₹{{ acc.balance }}</option>
                 {% endfor %}
             </select>
         </div>
         
         <div class="form-group">
-            <label class="form-label">Amount ($)</label>
+            <label class="form-label">Amount (₹)</label>
             <input type="number" name="amount" class="form-control" step="0.01" min="1" placeholder="0.00" required style="font-size: 1.5rem; padding: 1rem;" />
         </div>
         

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Transaction History - NexaBank{% endblock %}
 
@@ -30,7 +30,7 @@
                     {% if tx.to_account %}....{{ tx.to_account.account_number|slice:"-4:" }}{% else %}-{% endif %}
                 </td>
                 <td style="font-weight: 700; color: {% if tx.type == 'DEPOSIT' %}var(--success){% elif tx.type == 'WITHDRAW' %}var(--danger){% else %}white{% endif %}">
-                    {% if tx.type == 'DEPOSIT' %}+{% elif tx.type == 'WITHDRAW' %}-{% endif %}${{ tx.amount }}
+                    {% if tx.type == 'DEPOSIT' %}+{% elif tx.type == 'WITHDRAW' %}-{% endif %}₹{{ tx.amount }}
                 </td>
                 <td>
                     <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING' %}badge-pending{% else %}badge-failed{% endif %}">

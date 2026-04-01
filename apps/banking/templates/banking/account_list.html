@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}My Accounts - NexaBank{% endblock %}
 
@@ -21,7 +21,7 @@
             </div>
             
             <p style="color: var(--text-muted); font-size: 0.875rem; text-transform: uppercase;">Available Balance</p>
-            <p style="font-size: 2.5rem; font-weight: 800; color: var(--secondary); margin-bottom: 1.5rem;">${{ account.balance }}</p>
+            <p style="font-size: 2.5rem; font-weight: 800; color: var(--secondary); margin-bottom: 1.5rem;">₹{{ account.balance }}</p>
             
             <div style="display: flex; gap: 0.5rem;">
                 <a href="{% url 'banking:account-detail' account.id %}" class="btn btn-secondary" style="flex: 1;">Details</a>

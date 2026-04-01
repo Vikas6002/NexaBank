@@ -13,6 +13,7 @@ class BankAccount(models.Model):
     account_number = models.CharField(max_length=20, unique=True)
     account_type = models.CharField(max_length=10, choices=ACCOUNT_TYPES, default='SAVINGS')
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    is_frozen = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

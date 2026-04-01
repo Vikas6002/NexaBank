@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Account Details - NexaBank{% endblock %}
 
@@ -32,7 +32,7 @@
     
     <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none;">
         <p style="color: rgba(255,255,255,0.8); text-transform: uppercase; font-size: 0.875rem; letter-spacing: 1px;">Current Balance</p>
-        <h2 style="font-size: 3.5rem; margin: 1rem 0;">${{ account.balance }}</h2>
+        <h2 style="font-size: 3.5rem; margin: 1rem 0;">₹{{ account.balance }}</h2>
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <a href="{% url 'transactions:deposit' %}" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); flex: 1;">Deposit</a>
             <a href="{% url 'transactions:transfer' %}" class="btn" style="background: white; color: var(--primary-dark); flex: 1;">Transfer</a>

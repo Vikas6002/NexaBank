@@ -1,34 +1,192 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
-{% block title %}Admin Dashboard - NexaBank{% endblock %}
+{% block title %}Admin Portal - NexaBank{% endblock %}
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Admin Dashboard</h2>
+    <h2>Global Administration Center</h2>
     <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">System Operational</span>
 </div>
 
-<div class="dashboard-grid" style="grid-template-columns: repeat(3, 1fr);">
-    <div class="card" style="text-align: center; padding: 3rem 1rem; border-top: 4px solid var(--primary);">
-        <p style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Total Accounts</p>
-        <h2 style="font-size: 3rem; margin: 0.5rem 0;">{{ total_accounts }}</h2>
+<div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--primary);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Capital</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">₹{{ total_capital|floatformat:2 }}</h2>
     </div>
     
-    <div class="card" style="text-align: center; padding: 3rem 1rem; border-top: 4px solid var(--secondary);">
-        <p style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Total Transactions</p>
-        <h2 style="font-size: 3rem; margin: 0.5rem 0;">{{ total_transactions }}</h2>
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--secondary);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Transactions</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_transactions }}</h2>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--success);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Users</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_users }}</h2>
     </div>
     
-    <div class="card" style="text-align: center; padding: 3rem 1rem; border-top: 4px solid var(--danger);">
-        <p style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">System Alerts</p>
-        <h2 style="font-size: 3rem; margin: 0.5rem 0; color: var(--danger);">0</h2>
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--danger);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Bank Accounts</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_accounts }}</h2>
     </div>
 </div>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; margin-bottom: 1.5rem;">
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+    <!-- USER MANAGEMENT TABLE -->
+    <div class="card">
+        <h3>User Role Management</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Promote and demote user authority limits.</p>
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email / User</th>
+                        <th>Current Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in all_users %}
+                    <tr>
+                        <td style="font-size: 0.9rem;">
+                            {{ u.email }}
+                            {% if not u.is_verified %}<span class="badge badge-failed" style="font-size: 0.7rem; margin-left: 5px;">Unverified</span>{% endif %}
+                        </td>
+                        <td><span class="badge {% if u.role == 'ADMIN' %}badge-danger{% elif u.role == 'TELLER' %}badge-secondary{% else %}badge-success{% endif %}">{{ u.role }}</span></td>
+                        <td>
+                            <form method="POST" action="{% url 'dashboard:change-role' u.id %}" style="display:flex; gap: 5px;">
+                                {% csrf_token %}
+                                <select name="role" class="form-control" style="padding: 3px 5px; font-size: 0.8rem;">
+                                    <option value="CUSTOMER" {% if u.role == 'CUSTOMER' %}selected{% endif %}>Customer</option>
+                                    <option value="TELLER" {% if u.role == 'TELLER' %}selected{% endif %}>Teller</option>
+                                    <option value="ADMIN" {% if u.role == 'ADMIN' %}selected{% endif %}>Admin</option>
+                                </select>
+                                <button type="submit" class="btn btn-secondary" style="padding: 3px 10px; font-size: 0.8rem;">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACCOUNT CONTROL TABLE -->
+    <div class="card">
+        <h3>Account Control Center</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Freeze capabilities lock all financial transactions on an account.</p>
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Account #</th>
+                        <th>Owner</th>
+                        <th>Balance</th>
+                        <th>Security</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for acc in all_accounts %}
+                    <tr>
+                        <td style="font-weight: 500;">{{ acc.account_number }}</td>
+                        <td style="font-size: 0.9rem; color: var(--text-muted);">{{ acc.user.email }}</td>
+                        <td style="font-weight: bold;">₹{{ acc.balance|floatformat:2 }}</td>
+                        <td>
+                            <form method="POST" action="{% url 'dashboard:toggle-freeze' acc.id %}">
+                                {% csrf_token %}
+                                {% if acc.is_frozen %}
+                                    <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--success); color: white;">Unfreeze Account</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger); color: white;">Freeze Account 🚫</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 3rem; margin-bottom: 1.5rem;">
+    <h3>Pending Transaction Approvals</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Large transfers waiting for manual authorization.</p>
+</div>
+{% if pending_transactions %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Sender</th>
+                <th>Recipient</th>
+                <th>Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in pending_transactions %}
+            <tr>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
+                <td style="font-weight: 500;">{{ tx.from_account.account_number }}</td>
+                <td style="font-weight: 500;">{{ tx.to_account.account_number }}</td>
+                <td style="font-weight: 700;">₹{{ tx.amount }}</td>
+                <td>
+                    <form method="POST" action="{% url 'dashboard:approve-transfer' tx.id %}" style="display:flex; gap: 5px;">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--success); color: white; border: none;">Approve</button>
+                        <button type="submit" name="action" value="reject" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger); color: white; border: none;">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 2rem 1rem;">
+    <p style="color: var(--text-muted);">No pending approvals.</p>
+</div>
+{% endif %}
+
+<div style="margin-top: 3rem; margin-bottom: 1.5rem;">
+    <h3>Flagged Suspicious Activity</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Transactions automatically flagged by anti-spam and volume-surge algorithms.</p>
+</div>
+{% if flagged_transactions %}
+<div class="table-container" style="border-left: 4px solid var(--danger);">
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Account</th>
+                <th>Amount</th>
+                <th>Flag Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in flagged_transactions %}
+            <tr>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
+                <td style="font-weight: 500;">
+                    {% if tx.from_account %}{{ tx.from_account.account_number }}{% else %}System{% endif %}
+                </td>
+                <td style="font-weight: 700;">₹{{ tx.amount }}</td>
+                <td><span style="color: var(--danger); font-weight: 600; font-size: 0.85rem;">{{ tx.flag_reason }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 2rem 1rem;">
+    <p style="color: var(--text-muted);">No suspicious transactions detected.</p>
+</div>
+{% endif %}
+
+<div style="margin-top: 3rem; margin-bottom: 1.5rem;">
     <h3>Recent Platform Activity</h3>
 </div>
-
 {% if recent_transactions %}
 <div class="table-container">
     <table>
@@ -45,9 +203,9 @@
             <tr>
                 <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
                 <td style="font-weight: 500;">{{ tx.get_type_display }}</td>
-                <td style="font-weight: 700;">${{ tx.amount }}</td>
+                <td style="font-weight: 700;">₹{{ tx.amount }}</td>
                 <td>
-                    <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING' %}badge-pending{% else %}badge-failed{% endif %}">
+                    <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING_APPROVAL' %}badge-pending{% else %}badge-failed{% endif %}">
                         {{ tx.status }}
                     </span>
                 </td>

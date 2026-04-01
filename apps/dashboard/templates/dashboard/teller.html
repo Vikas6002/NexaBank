@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Teller Dashboard - NexaBank{% endblock %}
 
@@ -46,7 +46,7 @@
                 <td style="font-weight: 500;">{{ tx.get_type_display }}</td>
                 <td style="font-family: monospace;">{% if tx.from_account %}....{{ tx.from_account.account_number|slice:"-4:" }}{% else %}-{% endif %}</td>
                 <td style="font-family: monospace;">{% if tx.to_account %}....{{ tx.to_account.account_number|slice:"-4:" }}{% else %}-{% endif %}</td>
-                <td style="font-weight: 700;">${{ tx.amount }}</td>
+                <td style="font-weight: 700;">₹{{ tx.amount }}</td>
                 <td>
                     <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING' %}badge-pending{% else %}badge-failed{% endif %}">
                         {{ tx.status }}

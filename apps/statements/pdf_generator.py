@@ -1,4 +1,4 @@
-from reportlab.lib.pagesizes import letter
+﻿from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
@@ -16,7 +16,7 @@ def generate_account_statement_pdf(account, transactions):
     elements.append(Paragraph(f"Account Statement", styles['Heading1']))
     elements.append(Paragraph(f"Account Number: {account.account_number}", styles['Normal']))
     elements.append(Paragraph(f"Account Type: {account.get_account_type_display()}", styles['Normal']))
-    elements.append(Paragraph(f"Current Balance: ${account.balance}", styles['Normal']))
+    elements.append(Paragraph(f"Current Balance: ₹{account.balance}", styles['Normal']))
     elements.append(Paragraph(" ", styles['Normal'])) # Spacing
     
     data = [['Date', 'Type', 'Amount', 'Status']]
@@ -26,7 +26,7 @@ def generate_account_statement_pdf(account, transactions):
         data.append([
             tx.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             tx.type,
-            f"{amount_sign}${tx.amount}",
+            f"{amount_sign}₹{tx.amount}",
             tx.status
         ])
         
