@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Admin Overview - NexaBank{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Global Administration Center</h2>
+    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">System Operational</span>
+</div>
+{% include 'dashboard/admin_subnav.html' %}
+
+<div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <!-- Cards: Total Capital, Total Transactions, Total Users, Bank Accounts -->
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--primary);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Capital</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">₹{{ total_capital|floatformat:2 }}</h2>
+    </div>
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--secondary);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Transactions</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_transactions }}</h2>
+    </div>
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--success);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Total Users</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_users }}</h2>
+    </div>
+    <div class="card" style="text-align: center; padding: 2rem 1rem; border-top: 4px solid var(--danger);">
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Bank Accounts</p>
+        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_accounts }}</h2>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr; margin-top: 2rem; gap: 2rem;">
+    <!-- Pending Approvals -->
+    <div class="card">
+        <h3>Pending Transaction Approvals</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Large transfers waiting for manual authorization.</p>
+        {% if pending_transactions %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Sender</th>
+                        <th>Recipient</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in pending_transactions %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
+                        <td style="font-weight: 500;">{{ tx.from_account.account_number }}</td>
+                        <td style="font-weight: 500;">{{ tx.to_account.account_number }}</td>
+                        <td style="font-weight: 700;">₹{{ tx.amount }}</td>
+                        <td>
+                            <form method="POST" action="{% url 'dashboard:approve-transfer' tx.id %}" style="display:flex; gap: 5px;">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--success); color: white; border: none;">Approve</button>
+                                <button type="submit" name="action" value="reject" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger); color: white; border: none;">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted);">No pending approvals.</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Platform Activity -->
+    <div class="card">
+        <h3>Recent Platform Activity</h3>
+        {% if recent_transactions %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
+                        <td style="font-weight: 500;">{{ tx.get_type_display }}</td>
+                        <td style="font-weight: 700;">₹{{ tx.amount }}</td>
+                        <td>
+                            <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING_APPROVAL' %}badge-pending{% else %}badge-failed{% endif %}">
+                                {{ tx.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted);">No activity recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

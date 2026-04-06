@@ -1,0 +1,4 @@
+<div style="background: var(--background); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; gap: 1rem; border: 1px solid var(--border); overflow-x: auto;">
+    <a href="{% url 'dashboard:teller' %}" class="btn {% if request.resolver_match.url_name == 'teller' %}btn-primary{% else %}btn-secondary{% endif %}" style="flex:1; text-align:center; min-width: 150px;">Global Transactions Overview</a>
+    <a href="{% url 'dashboard:teller-accounts' %}" class="btn {% if request.resolver_match.url_name == 'teller-accounts' %}btn-primary{% else %}btn-secondary{% endif %}" style="flex:1; text-align:center; min-width: 150px;">Customer Account Lookup</a>
+</div>

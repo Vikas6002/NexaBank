@@ -15,7 +15,7 @@ def deposit_view(request):
         amount = request.POST.get('amount')
         
         try:
-            account = BankAccount.objects.get(pk=account_id, user=request.user)
+            account = BankAccount.objects.get(pk=account_id)
             success, msg = perform_deposit(account, amount)
             if success:
                 messages.success(request, msg)
@@ -26,7 +26,8 @@ def deposit_view(request):
             
         return redirect('transactions:deposit')
 
-    accounts = BankAccount.objects.filter(user=request.user)
+    # Teller / Admin can deposit into any user's account
+    accounts = BankAccount.objects.select_related('user').all()
     return render(request, 'transactions/deposit.html', {'accounts': accounts})
 
 @login_required
@@ -37,7 +38,11 @@ def withdraw_view(request):
         amount = request.POST.get('amount')
         
         try:
-            account = BankAccount.objects.get(pk=account_id, user=request.user)
+            if request.user.role in ['ADMIN', 'TELLER']:
+                account = BankAccount.objects.get(pk=account_id)
+            else:
+                account = BankAccount.objects.get(pk=account_id, user=request.user)
+                
             success, msg = perform_withdraw(account, amount)
             if success:
                 messages.success(request, msg)
@@ -48,7 +53,11 @@ def withdraw_view(request):
             
         return redirect('transactions:withdraw')
 
-    accounts = BankAccount.objects.filter(user=request.user)
+    if request.user.role in ['ADMIN', 'TELLER']:
+        accounts = BankAccount.objects.select_related('user').all()
+    else:
+        accounts = BankAccount.objects.filter(user=request.user)
+        
     return render(request, 'transactions/withdraw.html', {'accounts': accounts})
 
 @login_required
@@ -60,7 +69,11 @@ def transfer_view(request):
         amount = request.POST.get('amount')
         
         try:
-            from_account = BankAccount.objects.get(pk=from_account_id, user=request.user)
+            if request.user.role in ['ADMIN', 'TELLER']:
+                from_account = BankAccount.objects.get(pk=from_account_id)
+            else:
+                from_account = BankAccount.objects.get(pk=from_account_id, user=request.user)
+                
             to_account = BankAccount.objects.get(account_number=to_account_number)
             
             success, msg = perform_transfer(from_account, to_account, amount)
@@ -73,7 +86,11 @@ def transfer_view(request):
             
         return redirect('transactions:transfer')
 
-    accounts = BankAccount.objects.filter(user=request.user)
+    if request.user.role in ['ADMIN', 'TELLER']:
+        accounts = BankAccount.objects.select_related('user').all()
+    else:
+        accounts = BankAccount.objects.filter(user=request.user)
+        
     return render(request, 'transactions/transfer.html', {'accounts': accounts})
 
 @login_required

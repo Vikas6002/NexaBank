@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Teller Lookup - NexaBank{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Teller Command Center</h2>
+    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">Active Branch Session</span>
+</div>
+{% include 'dashboard/teller_subnav.html' %}
+
+<div class="card" style="border-top: 4px solid #f59e0b; margin-top: 2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h3>Master Account Lookup 🔎</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top:0.5rem;">Instantly verify balances and account numbers across the entire user base.</p>
+        </div>
+        <input type="text" id="masterSearch" class="form-control" placeholder="Search accounts by name, email, or exact ID..." onkeyup="filterMasterTable()" style="max-width: 400px; padding: 0.75rem;">
+    </div>
+
+    <div class="table-container" style="max-height: 600px; overflow-y: auto; margin-top: 0;">
+        <table id="masterAccountTable">
+            <thead>
+                <tr>
+                    <th>Account Holder</th>
+                    <th>10-Digit ID</th>
+                    <th>Classification</th>
+                    <th>Network Status</th>
+                    <th>Liquid Capital</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acc in all_accounts %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">{{ acc.user.first_name }} {{ acc.user.last_name }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">{{ acc.user.email }}</div>
+                    </td>
+                    <td style="font-family: monospace; font-size: 1.05rem; letter-spacing: 1px;">{{ acc.account_number }}</td>
+                    <td><span class="badge badge-secondary">{{ acc.get_account_type_display }}</span></td>
+                    <td>
+                        {% if acc.is_frozen %}
+                            <span class="badge badge-failed">FROZEN LOCK</span>
+                        {% else %}
+                            <span class="badge badge-success">CLEARED</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 700; font-size: 1.1rem; color: var(--primary);">₹{{ acc.balance }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function filterMasterTable() {
+    let input = document.getElementById("masterSearch").value.toLowerCase();
+    let table = document.getElementById("masterAccountTable");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        let matchFound = false;
+        let tds = tr[i].getElementsByTagName("td");
+        
+        if (tds[0]) {
+            if (tds[0].innerText.toLowerCase().includes(input)) matchFound = true;
+        }
+        if (tds[1]) {
+            if (tds[1].innerText.toLowerCase().includes(input)) matchFound = true;
+        }
+
+        if (matchFound) {
+            tr[i].style.display = "";
+        } else {
+            tr[i].style.display = "none";
+        }
+    }
+}
+</script>
+{% endblock %}

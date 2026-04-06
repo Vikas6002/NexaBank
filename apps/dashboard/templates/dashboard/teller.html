@@ -1,27 +1,75 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Teller Dashboard - NexaBank{% endblock %}
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Teller Dashboard</h2>
-    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">Session Active</span>
+    <h2>Teller Command Center</h2>
+    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">Active Branch Session</span>
 </div>
 
 <div class="dashboard-grid">
     <div class="card" style="border-top: 4px solid var(--secondary);">
-        <h3>Customer Assistance</h3>
-        <p style="color: var(--text-muted); margin: 1rem 0;">Assist walk-in customers with deposits and withdrawals.</p>
-        <div style="display: flex; gap: 1rem;">
-            <a href="{% url 'transactions:deposit' %}" class="btn btn-secondary" style="flex: 1;">Make Deposit</a>
-            <a href="{% url 'transactions:withdraw' %}" class="btn btn-secondary" style="flex: 1;">Make Withdrawal</a>
+        <h3>Customer Assistance Actions</h3>
+        <p style="color: var(--text-muted); margin: 1rem 0;">Directly execute physical branch operations for walk-in clients.</p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{% url 'transactions:deposit' %}" class="btn btn-secondary" style="flex: 1;">Register Deposit</a>
+            <a href="{% url 'transactions:withdraw' %}" class="btn btn-secondary" style="flex: 1;">Execute Withdrawal</a>
+            <a href="{% url 'transactions:transfer' %}" class="btn btn-primary" style="flex: 1;">Issue Transfer</a>
         </div>
     </div>
     
     <div class="card" style="border-top: 4px solid var(--primary);">
         <h3>System Overview</h3>
-        <p style="color: var(--text-muted); margin: 1rem 0;">Monitor global system recent transactions.</p>
-        <a href="{% url 'transactions:history' %}" class="btn btn-primary" style="width: 100%;">View All Transactions</a>
+        <p style="color: var(--text-muted); margin: 1rem 0;">Direct access to the global financial ledger.</p>
+        <a href="{% url 'transactions:history' %}" class="btn btn-primary" style="width: 100%;">View Master Transactions Ledger</a>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 2rem; grid-template-columns: 1fr;">
+    <!-- CUSTOMER LOOKUP -->
+    <div class="card" style="border-top: 4px solid #f59e0b;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+            <div>
+                <h3>Master Account Lookup 🔎</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top:0.5rem;">Instantly verify balances and account numbers across the entire user base.</p>
+            </div>
+            <input type="text" id="masterSearch" class="form-control" placeholder="Search accounts by name, email, or exact ID..." onkeyup="filterMasterTable()" style="max-width: 400px; padding: 0.75rem;">
+        </div>
+
+        <div class="table-container" style="max-height: 400px; overflow-y: auto; margin-top: 0;">
+            <table id="masterAccountTable">
+                <thead>
+                    <tr>
+                        <th>Account Holder</th>
+                        <th>10-Digit ID</th>
+                        <th>Classification</th>
+                        <th>Network Status</th>
+                        <th>Liquid Capital</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for acc in all_accounts %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600;">{{ acc.user.first_name }} {{ acc.user.last_name }}</div>
+                            <div style="color: var(--text-muted); font-size: 0.8rem;">{{ acc.user.email }}</div>
+                        </td>
+                        <td style="font-family: monospace; font-size: 1.05rem; letter-spacing: 1px;">{{ acc.account_number }}</td>
+                        <td><span class="badge badge-secondary">{{ acc.get_account_type_display }}</span></td>
+                        <td>
+                            {% if acc.is_frozen %}
+                                <span class="badge badge-failed">FROZEN LOCK</span>
+                            {% else %}
+                                <span class="badge badge-success">CLEARED</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 700; font-size: 1.1rem; color: var(--primary);">₹{{ acc.balance }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -44,8 +92,8 @@
             <tr>
                 <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
                 <td style="font-weight: 500;">{{ tx.get_type_display }}</td>
-                <td style="font-family: monospace;">{% if tx.from_account %}....{{ tx.from_account.account_number|slice:"-4:" }}{% else %}-{% endif %}</td>
-                <td style="font-family: monospace;">{% if tx.to_account %}....{{ tx.to_account.account_number|slice:"-4:" }}{% else %}-{% endif %}</td>
+                <td style="font-family: monospace;">{% if tx.from_account %}{{ tx.from_account.account_number }}{% else %}-{% endif %}</td>
+                <td style="font-family: monospace;">{% if tx.to_account %}{{ tx.to_account.account_number }}{% else %}-{% endif %}</td>
                 <td style="font-weight: 700;">₹{{ tx.amount }}</td>
                 <td>
                     <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING' %}badge-pending{% else %}badge-failed{% endif %}">
@@ -60,4 +108,32 @@
 {% else %}
 <p style="text-align: center; color: var(--text-muted); padding: 2rem;">No recent transactions available.</p>
 {% endif %}
+
+<script>
+function filterMasterTable() {
+    let input = document.getElementById("masterSearch").value.toLowerCase();
+    let table = document.getElementById("masterAccountTable");
+    let tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, skip the header
+    for (let i = 1; i < tr.length; i++) {
+        let matchFound = false;
+        let tds = tr[i].getElementsByTagName("td");
+        
+        // Check text across Name, Email, and Account ID
+        if (tds[0]) {
+            if (tds[0].innerText.toLowerCase().includes(input)) matchFound = true;
+        }
+        if (tds[1]) {
+            if (tds[1].innerText.toLowerCase().includes(input)) matchFound = true;
+        }
+
+        if (matchFound) {
+            tr[i].style.display = "";
+        } else {
+            tr[i].style.display = "none";
+        }
+    }
+}
+</script>
 {% endblock %}

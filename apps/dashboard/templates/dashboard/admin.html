@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Admin Portal - NexaBank{% endblock %}
 
@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+<div class="dashboard-grid" style="grid-template-columns: 1fr; margin-top: 2rem; gap: 2rem;">
     <!-- USER MANAGEMENT TABLE -->
     <div class="card">
         <h3>User Role Management</h3>
@@ -55,12 +55,12 @@
                         <td>
                             <form method="POST" action="{% url 'dashboard:change-role' u.id %}" style="display:flex; gap: 5px;">
                                 {% csrf_token %}
-                                <select name="role" class="form-control" style="padding: 3px 5px; font-size: 0.8rem;">
+                                <select name="role" class="form-control" style="padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;">
                                     <option value="CUSTOMER" {% if u.role == 'CUSTOMER' %}selected{% endif %}>Customer</option>
                                     <option value="TELLER" {% if u.role == 'TELLER' %}selected{% endif %}>Teller</option>
                                     <option value="ADMIN" {% if u.role == 'ADMIN' %}selected{% endif %}>Admin</option>
                                 </select>
-                                <button type="submit" class="btn btn-secondary" style="padding: 3px 10px; font-size: 0.8rem;">Update</button>
+                                <button type="submit" class="btn btn-secondary" style="padding: 6px 16px; font-size: 0.85rem;">Update Role</button>
                             </form>
                         </td>
                     </tr>
@@ -94,9 +94,9 @@
                             <form method="POST" action="{% url 'dashboard:toggle-freeze' acc.id %}">
                                 {% csrf_token %}
                                 {% if acc.is_frozen %}
-                                    <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--success); color: white;">Unfreeze Account</button>
+                                    <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; background: var(--success); color: white;">Unfreeze ✅</button>
                                 {% else %}
-                                    <button type="submit" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger); color: white;">Freeze Account 🚫</button>
+                                    <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; background: var(--danger); color: white;">Freeze 🚫</button>
                                 {% endif %}
                             </form>
                         </td>
@@ -219,4 +219,107 @@
     <p style="color: var(--text-muted);">No activity recorded yet.</p>
 </div>
 {% endif %}
+
+<!-- SYSTEM SETTINGS UI -->
+<div class="dashboard-grid" style="grid-template-columns: 1fr 2fr; margin-top: 3rem; margin-bottom: 2rem;">
+    <!-- Global Rules -->
+    <div class="card">
+        <h3>Global Rules Engine ⚙️</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Configure platform structural limits instantly without code deployments.</p>
+        
+        <form method="POST" action="{% url 'dashboard:update-settings' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Minimum Blocked Balance (₹)</label>
+                <input type="number" step="0.01" name="minimum_balance" class="form-control" value="{{ sys_settings.minimum_balance|stringformat:'.2f' }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Max Transfer Limit (₹)</label>
+                <input type="number" step="0.01" name="max_transfer_limit" class="form-control" value="{{ sys_settings.max_transfer_limit|stringformat:'.2f' }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Daily Withdrawal Cap (₹)</label>
+                <input type="number" step="0.01" name="daily_withdrawal_limit" class="form-control" value="{{ sys_settings.daily_withdrawal_limit|stringformat:'.2f' }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Deploy New Rules constraints</button>
+        </form>
+    </div>
+
+    <!-- AUDIT LOGS UI -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+                <h3>System Audit & Event Logs 🕵️</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Cryptographic-style immutable tracking of all administrative actions executed on the platform.</p>
+            </div>
+        </div>
+        
+        <div class="table-container" style="max-height: 480px; overflow-y: auto; margin-top: 0;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Administrator</th>
+                        <th>Action Protocol</th>
+                        <th>Event Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.85rem; min-width: 120px;">{{ log.timestamp|date:"M j, g:i a" }}</td>
+                        <td style="font-weight: 600;">{{ log.admin_user.email }}</td>
+                        <td><span class="badge badge-secondary" style="font-size: 0.65rem;">{{ log.action }}</span></td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">{{ log.details }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">No system audits recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- OTP SECURITY PANEL -->
+<div class="card" style="margin-top: 2rem; margin-bottom: 2rem;">
+    <h3>OTP Security Monitoring Matrix 🔐</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Live relay of all verification tokens explicitly generated across endpoints.</p>
+
+    <div class="table-container" style="max-height: 350px; overflow-y: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Generation Time</th>
+                    <th>User Binding</th>
+                    <th>Code (Masked)</th>
+                    <th>Network Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in otp_logs %}
+                <tr>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">{{ log.created_at|date:"M j, g:i a" }}</td>
+                    <td style="font-weight: 600;">{{ log.user.email }}</td>
+                    <td style="font-family: monospace; letter-spacing: 2px;">***{{ log.code|slice:"3:" }}</td>
+                    <td>
+                        {% if log.is_verified %}
+                            <span class="badge badge-success" style="font-size: 0.65rem;">AUTHORIZED</span>
+                        {% else %}
+                            <span class="badge badge-pending" style="font-size: 0.65rem;">PENDING/ALIVE</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">No active OTP tokens inside the relay network.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {% endblock %}

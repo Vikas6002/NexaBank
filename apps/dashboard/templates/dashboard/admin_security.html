@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Admin Security - NexaBank{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Global Administration Center</h2>
+    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">System Operational</span>
+</div>
+{% include 'dashboard/admin_subnav.html' %}
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 2rem;">
+    <!-- Global Rules -->
+    <div class="card">
+        <h3>Global Rules Engine ⚙️</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Configure platform structural limits instantly without code deployments.</p>
+        
+        <form method="POST" action="{% url 'dashboard:update-settings' %}">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Min Blocked Balance (₹)</label>
+                    <input type="number" step="0.01" name="minimum_balance" class="form-control" value="{{ sys_settings.minimum_balance|stringformat:'.2f' }}" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Max Transfer Limit (₹)</label>
+                    <input type="number" step="0.01" name="max_transfer_limit" class="form-control" value="{{ sys_settings.max_transfer_limit|stringformat:'.2f' }}" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Daily Withdrawal Cap (₹)</label>
+                    <input type="number" step="0.01" name="daily_withdrawal_limit" class="form-control" value="{{ sys_settings.daily_withdrawal_limit|stringformat:'.2f' }}" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Deploy New Rules constraints</button>
+        </form>
+    </div>
+
+    <!-- Flagged Activity -->
+    <div class="card">
+        <h3>Flagged Suspicious Activity</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Transactions automatically flagged by anti-spam and volume-surge algorithms.</p>
+        {% if flagged_transactions %}
+        <div class="table-container" style="border-left: 4px solid var(--danger); max-height: 300px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Account</th>
+                        <th>Amount</th>
+                        <th>Flag Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in flagged_transactions %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
+                        <td style="font-weight: 500;">
+                            {% if tx.from_account %}{{ tx.from_account.account_number }}{% else %}System{% endif %}
+                        </td>
+                        <td style="font-weight: 700;">₹{{ tx.amount }}</td>
+                        <td><span style="color: var(--danger); font-weight: 600; font-size: 0.85rem;">{{ tx.flag_reason }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted);">No suspicious transactions detected.</p>
+        {% endif %}
+    </div>
+
+    <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- AUDIT LOGS UI -->
+        <div class="card">
+            <h3>System Audit Logs</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Immutable tracking of administrative actions.</p>
+            <div class="table-container" style="max-height: 400px; overflow-y: auto; margin-top: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Admin</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in audit_logs %}
+                        <tr>
+                            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ log.timestamp|date:"M j, g:i" }}</td>
+                            <td style="font-weight: 600;">{{ log.admin_user.email }}</td>
+                            <td><span class="badge badge-secondary" style="font-size: 0.65rem;">{{ log.action }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">No system audits.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- OTP Matrix -->
+        <div class="card">
+            <h3>OTP Routing Matrix</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Live relay of all verification tokens.</p>
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in otp_logs %}
+                        <tr>
+                            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ log.created_at|date:"M j, g:i" }}</td>
+                            <td style="font-weight: 600;">{{ log.user.email }}</td>
+                            <td>
+                                {% if log.is_verified %}
+                                    <span class="badge badge-success" style="font-size: 0.65rem;">VALID</span>
+                                {% else %}
+                                    <span class="badge badge-pending" style="font-size: 0.65rem;">PENDING</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">No active OTP tokens.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

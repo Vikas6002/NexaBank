@@ -1,0 +1,6 @@
+<div style="background: var(--background); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; gap: 1rem; border: 1px solid var(--border); overflow-x: auto;">
+    <a href="{% url 'dashboard:admin' %}" class="btn {% if request.resolver_match.url_name == 'admin' %}btn-primary{% else %}btn-secondary{% endif %}" style="flex:1; text-align:center; min-width: 150px;">Global Overview</a>
+    <a href="{% url 'dashboard:admin-roles' %}" class="btn {% if request.resolver_match.url_name == 'admin-roles' %}btn-primary{% else %}btn-secondary{% endif %}" style="flex:1; text-align:center; min-width: 150px;">Role Management</a>
+    <a href="{% url 'dashboard:admin-accounts' %}" class="btn {% if request.resolver_match.url_name == 'admin-accounts' %}btn-primary{% else %}btn-secondary{% endif %}" style="flex:1; text-align:center; min-width: 150px;">Account Controls</a>
+    <a href="{% url 'dashboard:admin-security' %}" class="btn {% if request.resolver_match.url_name == 'admin-security' %}btn-primary{% else %}btn-secondary{% endif %}" style="flex:1; text-align:center; min-width: 150px;">Security & Audit</a>
+</div>

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Teller Dashboard - NexaBank{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Teller Command Center</h2>
+    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">Active Branch Session</span>
+</div>
+{% include 'dashboard/teller_subnav.html' %}
+
+<div class="dashboard-grid">
+    <div class="card" style="border-top: 4px solid var(--secondary);">
+        <h3>Customer Assistance Actions</h3>
+        <p style="color: var(--text-muted); margin: 1rem 0;">Directly execute physical branch operations for walk-in clients.</p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{% url 'transactions:deposit' %}" class="btn btn-secondary" style="flex: 1;">Register Deposit</a>
+            <a href="{% url 'transactions:withdraw' %}" class="btn btn-secondary" style="flex: 1;">Execute Withdrawal</a>
+            <a href="{% url 'transactions:transfer' %}" class="btn btn-primary" style="flex: 1;">Issue Transfer</a>
+        </div>
+    </div>
+</div>
+
+<h3 style="margin-top: 3rem; margin-bottom: 1.5rem;">Recent Global Transactions</h3>
+{% if recent_transactions %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in recent_transactions %}
+            <tr>
+                <td style="color: var(--text-muted); font-size: 0.9rem;">{{ tx.timestamp|date:"M j, Y, g:i a" }}</td>
+                <td style="font-weight: 500;">{{ tx.get_type_display }}</td>
+                <td style="font-family: monospace;">{% if tx.from_account %}{{ tx.from_account.account_number }}{% else %}-{% endif %}</td>
+                <td style="font-family: monospace;">{% if tx.to_account %}{{ tx.to_account.account_number }}{% else %}-{% endif %}</td>
+                <td style="font-weight: 700;">₹{{ tx.amount }}</td>
+                <td>
+                    <span class="badge {% if tx.status == 'SUCCESS' %}badge-success{% elif tx.status == 'PENDING_APPROVAL' %}badge-pending{% else %}badge-failed{% endif %}">
+                        {{ tx.status }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No recent transactions available.</p>
+{% endif %}
+{% endblock %}

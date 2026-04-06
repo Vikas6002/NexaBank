@@ -1,4 +1,4 @@
-﻿from django.db import transaction
+from django.db import transaction
 from .models import Transaction
 from decimal import Decimal
 from django.utils import timezone
@@ -46,16 +46,39 @@ def perform_withdraw(account, amount):
     try:
         with transaction.atomic():
             account.refresh_from_db(fields=['balance'])
-            if account.balance < Decimal(amount):
-                # Optionally record a failed transaction here
+            
+            from apps.dashboard.models import SystemSettings
+            from django.db import models
+            sys_settings = SystemSettings.get_settings()
+
+            if (account.balance - Decimal(amount)) < sys_settings.minimum_balance:
                 Transaction.objects.create(
                     from_account=account,
                     amount=amount,
                     type='WITHDRAW',
                     status='FAILED'
                 )
-                return False, "Insufficient balance."
+                return False, f"Withdrawal violates minimum balance constraint of ₹{sys_settings.minimum_balance}."
                 
+            from django.utils import timezone
+            
+            today = timezone.now().date()
+            daily_withdrawals = Transaction.objects.filter(
+                from_account=account,
+                type='WITHDRAW',
+                status='SUCCESS',
+                timestamp__date=today
+            ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+            
+            if (daily_withdrawals + Decimal(amount)) > sys_settings.daily_withdrawal_limit:
+                Transaction.objects.create(
+                    from_account=account,
+                    amount=amount,
+                    type='WITHDRAW',
+                    status='FAILED'
+                )
+                return False, f"Exceeds daily withdrawal limit of ₹{sys_settings.daily_withdrawal_limit}."
+
             account.balance -= Decimal(amount)
             account.save(update_fields=['balance'])
             
@@ -109,11 +132,26 @@ def perform_transfer(from_account, to_account, amount):
             is_flagged = recent_transfers >= 3
             flag_reason = "High velocity transfers detected (Anti-Spam)" if is_flagged else None
             
-            # FRAUD RULES - Amount Threshold (₹50k)
-            requires_approval = Decimal(amount) > Decimal('50000')
+            # FRAUD RULES - Amount Threshold (Dynamic)
+            from apps.dashboard.models import SystemSettings
+            sys_settings = SystemSettings.get_settings()
+            
+            requires_approval = Decimal(amount) > sys_settings.max_transfer_limit
+            
+            # Constraint: Minimum Balance
+            if (from_acc.balance - Decimal(amount)) < sys_settings.minimum_balance:
+                Transaction.objects.create(
+                    from_account=from_acc,
+                    to_account=to_acc,
+                    amount=amount,
+                    type='TRANSFER',
+                    status='FAILED',
+                    flag_reason=f"Violates minimum balance ₹{sys_settings.minimum_balance}"
+                )
+                return False, f"Transfer violated Minimum Balance protocol."
             
             if requires_approval:
-                flag_reason = "Large transfer amount requires Manual Admin Audit"
+                flag_reason = f"Transfer exceeds max limit of ₹{sys_settings.max_transfer_limit}."
                 is_flagged = True
                 
                 Transaction.objects.create(
@@ -125,7 +163,7 @@ def perform_transfer(from_account, to_account, amount):
                     is_flagged=is_flagged,
                     flag_reason=flag_reason
                 )
-                return True, "Transfer over ₹50,000 flagged for Admin Review."
+                return True, f"Transfer over limit flagged for Admin Review."
                 
             from_acc.balance -= Decimal(amount)
             from_acc.save(update_fields=['balance'])

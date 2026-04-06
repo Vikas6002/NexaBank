@@ -1,35 +1,107 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Transfer Funds - NexaBank{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 3rem auto;">
-    <h2>Transfer Funds</h2>
-    <p style="color: var(--text-muted); margin-bottom: 2rem;">Send money instantly to any NexaBank account securely.</p>
+<div class="card" style="max-width: 1100px; margin: 3rem auto; padding: 2rem; border-top: 4px solid var(--primary);">
+    <h2>Initiate Transfer</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Transfer funds securely across the NexaBank network.</p>
     
     <form method="POST">
         {% csrf_token %}
-        <div class="form-group">
-            <label class="form-label">From Account</label>
-            <select name="from_account_id" class="form-control" required style="padding: 1rem; appearance: none; cursor: pointer;">
-                <option value="" disabled selected>Select source account</option>
-                {% for acc in accounts %}
-                    <option value="{{ acc.id }}">{{ acc.get_account_type_display }} (....{{ acc.account_number|slice:"-4:" }}) - Bal: ₹{{ acc.balance }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <input type="hidden" name="from_account_id" id="selectedAccountId" required>
         
-        <div class="form-group">
-            <label class="form-label">To Account Number</label>
-            <input type="text" name="to_account_number" class="form-control" placeholder="10 digit account number" required style="padding: 1rem; font-family: monospace; letter-spacing: 2px;" />
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <!-- Left Side: Table -->
+            <div style="flex: 2; min-width: 400px;">
+                <h4 style="margin-bottom: 1rem;">Select Origin Account</h4>
+                <input type="text" id="accountSearch" class="form-control" placeholder="🔍 Search source account by email, name, or exact ID..." onkeyup="filterAccounts()" style="margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);">
+                
+                <div class="table-container" style="max-height: 400px; overflow-y: auto; margin-top: 0; box-shadow: none; border: 1px solid var(--border);">
+                    <table id="accountTable" style="margin-bottom: 0;">
+                        <thead style="position: sticky; top: 0; background: white; z-index: 1;">
+                            <tr>
+                                <th>Account Holder</th>
+                                <th>Classification</th>
+                                <th>Liquid Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for acc in accounts %}
+                            <tr class="account-row" onclick="selectAccount('{{ acc.id }}', this)" style="cursor: pointer; transition: 0.2s;">
+                                <td>
+                                    <div style="font-weight: 600; color: var(--text);">{{ acc.user.first_name }} {{ acc.user.last_name }}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-light);">{{ acc.user.email }}</div>
+                                </td>
+                                <td>
+                                    <div><span class="badge badge-secondary">{{ acc.get_account_type_display }}</span></div>
+                                    <div style="font-family: monospace; font-size: 0.9rem; margin-top: 0.4rem; color: var(--text-light);">{{ acc.account_number }}</div>
+                                </td>
+                                <td style="font-weight: bold; color: var(--primary);">₹{{ acc.balance }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Right Side: Amount -->
+            <div style="flex: 1; min-width: 300px; padding: 1.5rem; background: var(--background); border-radius: 12px; height: fit-content;">
+                <h4 style="margin-bottom: 1rem; color: var(--text);">Transfer Parameters</h4>
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" style="font-weight: 600;">Recipient Account No.</label>
+                    <input type="text" name="to_account_number" class="form-control" placeholder="10-digit Destination ID" required style="padding: 1.5rem; font-family: monospace; font-size: 1.4rem; font-weight: bold; text-align: center; letter-spacing: 2px;" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600;">Amount (₹)</label>
+                    <input type="number" name="amount" class="form-control" step="0.01" min="1" placeholder="0.00" required style="font-size: 1.8rem; padding: 1.5rem; font-weight: bold; text-align: right; color: var(--primary);" />
+                </div>
+                
+                <div id="selectionHint" style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; margin: 1rem 0; color: var(--danger); font-size: 0.9rem; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <strong>Awaiting origin account.</strong><br/>Please click a row on the left side to lock the source of funds.
+                </div>
+                
+                <button type="submit" id="submitBtn" class="btn btn-primary" disabled style="width: 100%; padding: 1rem; font-size: 1.1rem; opacity: 0.5; transition: 0.3s; background: linear-gradient(135deg, var(--secondary), #0d9488);">Dispatch Transfer 💸</button>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label class="form-label">Amount (₹)</label>
-            <input type="number" name="amount" class="form-control" step="0.01" min="1" placeholder="0.00" required style="font-size: 1.5rem; padding: 1rem;" />
-        </div>
-        
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, var(--secondary), #0d9488);">Proceed with Transfer 💸</button>
     </form>
 </div>
+
+<style>
+.account-row:hover { background-color: var(--background) !important; }
+.account-row.selected { 
+    background-color: rgba(13, 148, 136, 0.08) !important; 
+    border-left: 4px solid var(--primary) !important; 
+}
+</style>
+
+<script>
+function filterAccounts() {
+    let input = document.getElementById('accountSearch').value.toLowerCase();
+    let rows = document.querySelectorAll('#accountTable tbody tr');
+    rows.forEach(row => {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(input) ? '' : 'none';
+    });
+}
+
+function selectAccount(id, element) {
+    document.getElementById('selectedAccountId').value = id;
+    
+    document.querySelectorAll('.account-row').forEach(row => row.classList.remove('selected'));
+    element.classList.add('selected');
+    
+    let hint = document.getElementById('selectionHint');
+    hint.innerHTML = '<strong style="color:var(--primary);">Origin Locked ✅</strong> Ready to dispatch.';
+    hint.style.background = 'rgba(13, 148, 136, 0.1)';
+    hint.style.color = 'var(--text)';
+    hint.style.border = '1px solid rgba(13, 148, 136, 0.3)';
+    
+    let btn = document.getElementById('submitBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+}
+</script>
 {% endblock %}

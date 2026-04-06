@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Account Control - NexaBank Admin{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Global Administration Center</h2>
+    <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">System Operational</span>
+</div>
+{% include 'dashboard/admin_subnav.html' %}
+
+<div class="card" style="margin-top: 2rem;">
+    <h3>Account Control Center</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Freeze capabilities immediately lock all financial transactions on an account.</p>
+    
+    <input type="text" id="accountSearch" class="form-control" placeholder="🔍 Search database by Email or precise Account #..." onkeyup="filterAccounts()" style="margin-bottom: 1rem; width: 100%; max-width: 400px; padding: 0.75rem;">
+    
+    <div class="table-container" style="max-height: 600px; overflow-y: auto;">
+        <table id="accountsTable">
+            <thead>
+                <tr>
+                    <th>Account #</th>
+                    <th>Owner</th>
+                    <th>Balance</th>
+                    <th>Security Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acc in all_accounts %}
+                <tr>
+                    <td style="font-weight: 500;">{{ acc.account_number }}</td>
+                    <td style="font-size: 0.9rem; color: var(--text-muted);">{{ acc.user.email }}</td>
+                    <td style="font-weight: bold;">₹{{ acc.balance|floatformat:2 }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:toggle-freeze' acc.id %}">
+                            {% csrf_token %}
+                            {% if acc.is_frozen %}
+                                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; background: var(--success); color: white;">Unfreeze ✅</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; background: var(--danger); color: white;">Freeze 🚫</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function filterAccounts() {
+    let input = document.getElementById('accountSearch').value.toLowerCase();
+    let rows = document.querySelectorAll('#accountsTable tbody tr');
+    rows.forEach(row => {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(input) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}
